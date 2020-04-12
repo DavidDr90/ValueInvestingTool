@@ -4,3 +4,4 @@ requests==2.22.0
 tqdm==4.32.2
 ipdb==0.12
 beautifulsoup4==4.9.0
+lxml==4.5.0

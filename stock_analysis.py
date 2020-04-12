@@ -32,7 +32,7 @@ def load_all_historical_10K(ticker, download_latest=True, foreign=False):
             utils.find_and_save_10K_to_folder(ticker, number_of_documents=10)
 
     files = utils.get_reports_list(ticker, report_type=report_type)
-    use_dei = not(args.no_dei_data)
+    use_dei = not (args.no_dei_data)
     xbrl = XBRL(use_dei=use_dei)
     for file in files:
         xbrl.load_YTD_xbrl_file(file)
@@ -81,7 +81,8 @@ def calculate_key_values(data):
     key_values['RevenuePerShare(Diluted)'] = data['Revenues'].divide(
         data['NumberOfDilutedSharesAdjusted'])
     key_values['FreeCashFlowPerShare(Diluted)'] = (data['CashFlowFromOperations'] -
-                                               data['CapitalExpenditure']).divide(data['NumberOfDilutedSharesAdjusted'])
+                                                   data['CapitalExpenditure']).divide(
+        data['NumberOfDilutedSharesAdjusted'])
     key_values['P/E'] = data['StockPrice'].divide(
         key_values['EarningPerShare(Diluted)'])
     return key_values
@@ -91,7 +92,8 @@ def main():
     ticker = args.ticker
     try:
         data = load_all_historical_10K(ticker, args.download, args.foreign)
-    except:
+    except Exception as e:
+        print('Exception message: ', str(e))
         print('could not find %s data. download by adding the argument "-d"' % ticker)
         sys.exit()
 
@@ -103,7 +105,7 @@ def main():
         data['NumberOfShares'])
     data['NumberOfDilutedSharesAdjusted'].fillna(
         data['NumberOfSharesAdjusted'], inplace=True)
-    data = data.iloc[-10:] # use only data from last decade
+    data = data.iloc[-10:]  # use only data from last decade
     years = int(data.index[-2] - data.index[0] + 1)
     daily_prices = utils.get_historical_stock_price(ticker, years)
 
@@ -164,9 +166,9 @@ def main():
     print('-------------------------------------------------------------------------------------')
 
     cagrs = revenue_per_share_growth.loc['CAGR'].values.tolist()
-    cagrs += eps_growth.loc['CAGR'].values.tolist() 
-    cagrs += oi_growth.loc['CAGR'].values.tolist() 
-    cagrs += book_value_per_share_growth.loc['CAGR'].values.tolist() 
+    cagrs += eps_growth.loc['CAGR'].values.tolist()
+    cagrs += oi_growth.loc['CAGR'].values.tolist()
+    cagrs += book_value_per_share_growth.loc['CAGR'].values.tolist()
     cagrs += free_cash_flow_growth.loc['CAGR'].values.tolist()
     valid_cagrs = []
     for cagr in cagrs:
@@ -183,17 +185,18 @@ def main():
         pes = key_values['P/E'].values
         pes = pes[~np.isnan(pes)]
         default_pe_estimation = max(np.median(pes), 5) * 1.1
-        normalized_pe_estimation = input("Estimate normalized P/E estimation (if nothing entered, %.2f is taken):" % default_pe_estimation)
+        normalized_pe_estimation = input(
+            "Estimate normalized P/E estimation (if nothing entered, %.2f is taken):" % default_pe_estimation)
         normalized_pe_estimation = float(normalized_pe_estimation or default_pe_estimation)
         eps_ttm = key_values.loc['TTM']['EarningPerShare(Diluted)']
         if np.isnan(eps_ttm):
             eps_ttm = key_values.iloc[-2]['EarningPerShare(Diluted)']
         print("Growth rate estimation: %d%%, future P/E estimation: %.2f" %
-            (GR_estimation, normalized_pe_estimation))
+              (GR_estimation, normalized_pe_estimation))
         print("Fair value is estimated in the range of $%.2f - $%.2f" %
-            (valuation_funcs.calc_growth_at_normalized_PE(eps_ttm, normalized_pe_estimation, GR_estimation)))
-    except:
-        print('not enough data...')
+              (valuation_funcs.calc_growth_at_normalized_PE(eps_ttm, normalized_pe_estimation, GR_estimation)))
+    except Exception as e:
+        print('not enough data... ', str(e))
 
     print('-------------------------------------------------------------------------------------')
     print()
@@ -204,13 +207,13 @@ def main():
         owner_earnings = valuation_funcs.calc_owner_earnings(data.iloc[-2])
         if owner_earnings is not None:
             market_cap = daily_prices.iloc[-1].close * \
-                data.iloc[-2]['NumberOfShares']
+                         data.iloc[-2]['NumberOfShares']
             print('Yearly owner earnings (X10): %d' % (10 * owner_earnings))
             print('Market Cap: %d' % market_cap)
             print("Owner earnings ratio (>1.0 is good): %.2f" %
-                (10 * owner_earnings / market_cap))
-    except:
-        print('not enough data...')
+                  (10 * owner_earnings / market_cap))
+    except Exception as e:
+        print('not enough data... ', str(e))
     print('-------------------------------------------------------------------------------------')
     print()
     print()
@@ -233,9 +236,9 @@ def main():
         latest_FCF = key_values['FreeCashFlowPerShare(Diluted)'].dropna().iloc[-1]
         dcf_low, dcf_high = valuation_funcs.DCF_FCF(latest_FCF, growth_rate=FCF_GR)
         print("Fair value is estimated in the range of $%.2f - $%.2f" %
-            (dcf_low, dcf_high))
-    except:
-        print("not enough data... (or negative cash flow)")
+              (dcf_low, dcf_high))
+    except Exception as e:
+        print("not enough data... (or negative cash flow). ", str(e))
 
     print('-------------------------------------------------------------------------------------')
     print()

@@ -64,8 +64,8 @@ def get_cik_and_name_from_ticker(ticker):
     return cik_find, name_find
 
 
-def get_reports_list(ticker, report_type='10-K', file_type='xbrl', data_folder='./SEC-Edgar-Data/'):
-    report_type += '/'
+def get_reports_list(ticker, report_type='10-K', file_type='xbrl', data_folder='.\\SEC-Edgar-Data\\'):
+    report_type += '\\'
     path = os.path.join(data_folder, ticker, report_type, file_type)
     if not os.path.isdir(path):
         print(f'could not find {ticker} folder')
