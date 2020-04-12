@@ -23,3 +23,5 @@ In order to analyze a certain stock, run the following script with a certain TIC
 
 
 Cheers!
+
+This repo was fork from https://github.com/nirmorgo/sec-crawler
