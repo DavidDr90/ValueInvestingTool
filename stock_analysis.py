@@ -6,6 +6,9 @@ import numpy as np
 from tools import utils, valuation_funcs
 from tools.xbrl_parser import XBRL
 from ipdb import set_trace
+import xlsxwriter
+
+writer = pd.ExcelWriter('multi_sheet.xlsx', engine='xlsxwriter')
 
 parser = argparse.ArgumentParser(description='Optional app description')
 parser.add_argument('--ticker', '-t', type=str,
@@ -125,17 +128,20 @@ def main():
     print('--------------------------------Fundamental data:------------------------------------')
     print('-------------------------------------------------------------------------------------')
     print(data.transpose())
+    data.to_excel(writer, sheet_name="raw_data")
     print()
     print('-------------------------------------------------------------------------------------')
     print('------------------------------Key growth indicators:---------------------------------')
     print('-------------------------------------------------------------------------------------')
     key_values = calculate_key_values(data)
-
+    key_values.to_excel(writer, sheet_name="key_values")
     print(key_values.transpose())
     print()
     print('-------------------------------------------------------------------------------------')
     print('Book Value Per Share Growth:')
     book_value_per_share_growth = valuation_funcs.calculate_cagr_of_time_series(key_values['BookValuePerShare'])
+    print(writer.sheets)
+    book_value_per_share_growth.to_excel(writer, sheet_name="key_values", startrow=len(key_values.index)+5)
     print(book_value_per_share_growth)
     print()
     print('-------------------------------------------------------------------------------------')
@@ -247,3 +253,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+    writer.save()
+
